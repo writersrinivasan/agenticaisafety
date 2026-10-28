@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Agent Safety Lab — *Agentic AI Safety: When Agents Become Too Autonomous*
 
-## Getting Started
+A colourful learning app for a 2-hour session. It has two parts: an end-to-end **safety playbook** and **hands-on labs** that run real **LangGraph.js** agents on **Groq**, using a key each attendee brings (BYOK).
 
-First, run the development server:
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+# or: npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Click **Groq key** in the top bar, paste a key from https://console.groq.com/keys, press **Test** (this loads the models your key can use), and **Save**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What's inside
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | What |
+|---|---|
+| `/landscape` | Playbook: autonomy ladder L0–L5, 30 risks in 9 categories, lethal trifecta, OWASP Agentic Top 10, 8-stage lifecycle, defence-in-depth, 2025–26 trends, frameworks, incident wall, readiness checklist |
+| `/labs/prompt-injection` | **LangGraph** agent ⇄ tools loop: an email agent reads a poisoned email; toggle 5 defences (offline simulation without a key) |
+| `/labs/human-in-the-loop` | **LangGraph** `interrupt()` + `MemorySaver` + `Command({resume})`: an ops agent with an autonomy dial, approve/edit/reject, hard guardrails (works without a key) |
+| `/labs/runaway-agent` | Retry storms, ping-pong delegation and sub-agent explosions vs. budgets, a repetition detector, a depth limit and a kill switch |
+| `/labs/policy-engine` | Policy-as-code (default deny, deny overrides) with 4 auto-graded challenges |
+| `/labs/guardrails` | **LangGraph** parallel fan-out: PII, secrets and injection guards plus an LLM judge, joined by an aggregator |
+| `/labs/red-team` | **LangGraph** VaultBot: 4 levels of defence (prompt → input guard → output canary + tool policy) |
+| `/use-cases` | 9 industry scenarios with failure chains, controls, KPIs and a decision exercise |
+| `/assistant` | "Sentinel": a guarded LangGraph tutor (input guard → tool-using tutor → output guard) with a visible trace |
+| `/session` | 120-minute facilitator plan with a live session clock and a 10-question quiz |
 
-## Learn More
+## Code map
 
-To learn more about Next.js, take a look at the following resources:
+- `src/lib/agents/*` — LangGraph graphs (assistant, injection, hitl, guardrails, redteam)
+- `src/app/api/*` — route handlers. They read the key from the `x-groq-key` header.
+- `src/lib/content/*` — all teaching content (edit here to customise the session)
+- `src/lib/guards.ts`, `src/lib/policy.ts` — deterministic detectors and the policy engine, shared by browser and server
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## BYOK and security notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- The key is stored only in the browser's `localStorage`. It is sent per request to this app's API routes, which pass it to Groq and never store or log it.
+- The HITL lab keeps paused runs in an in-memory checkpointer. That is fine for a single server or a workshop. For serverless or multi-instance hosting, swap `MemorySaver` for a persistent checkpointer (e.g. Postgres).
+- Recommend attendees use a throwaway key and revoke it after the session.
